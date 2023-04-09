@@ -1,0 +1,31 @@
+---
+- name: Create Samba share
+  hosts: all
+  tasks:
+    - name: Install Samba
+      package:
+        name: samba
+        state: present
+
+    - name: Create Samba share directory
+      file:
+        path: /mnt/sambashare
+        state: directory
+        mode: 0777
+
+    - name: Add Samba share configuration
+      lineinfile:
+        path: /etc/samba/smb.conf
+        line: |
+          [sambashare]
+                path = /mnt/sambashare
+                read only = no
+                browseable = yes
+                guest ok = yes
+                create mask = 0777
+                directory mask = 0777
+
+    - name: restart samba
+      systemd:
+        service: smbd
+        state: restarted

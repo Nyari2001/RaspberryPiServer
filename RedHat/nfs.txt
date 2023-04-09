@@ -1,0 +1,46 @@
+/mnt/share 192.168.1.0/24(rw,sync,no_subtree_check)
+
+- hosts: all
+  become: true
+  tasks:
+    - name: Create NFS share directory
+      file:
+        path: /mnt/nfsshare
+        state: directory
+        mode: '0777'
+
+    - name: Install NFS packages
+      package:
+        name: nfs-utils
+        state: latest
+
+    - name: Install semanage packages
+      package:
+        name: policycoreutils-python-utils
+        state: latest
+
+    - name: Configure NFS exports
+      lineinfile:
+        path: /etc/exports
+        line: '/mnt/nfsshare 192.168.1.0/24(rw,sync,no_root_squash)'
+        state: present
+
+    - name: Restart NFS
+      service:
+        name: nfs-server
+        state: restarted
+
+    - name: Allow NFS traffic in firewall
+      firewalld:
+        service: nfs
+        permanent: yes
+        state: enabled
+
+    - name: Set new fcontext for file
+      sefcontext:
+        target: "/mnt/nfsshare(/.*)?"
+        setype: "nfs_t"
+        state: present
+
+    - name: use restorecon
+      raw: restorecon /mnt/nfsshare/

@@ -1,2 +1,2 @@
 # RaspberryPiServer
-A html és css fájlok a weblaphoz
+Az Ansible a html és css fájlok a weblaphoz
